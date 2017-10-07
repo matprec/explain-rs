@@ -1,0 +1,11 @@
+[package]
+authors = ["MSleepyPanda <m.sleepypanda@gmail.com>"]
+name = "explain-rs-derive"
+version = "0.1.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "0.3.12"
+syn = "0.11.10"
