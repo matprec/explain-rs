@@ -10,5 +10,4 @@ pub fn destructure_tuple((x, y): Baz) {}
 
 pub fn ignore(_: Foo) {}
 
-// FIXME: See issue https://github.com/shepmaster/fuzzy-pickles/issues/93
-//pub fn unbox(box f: Box<Foo>) {}
+pub fn unbox(box f: Box<Foo>) {}
