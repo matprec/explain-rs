@@ -94,11 +94,11 @@ impl ExtentExt for Vec<ExtentOrNested> {
             .enumerate()
             .fold(init, |last, (index, ext)| {
                 if last < ext.extent.0 {
-                    buffer.push_str(&source[last .. ext.extent.0]);
+                    buffer.push_str(&source[last .. ext.extent.0].replace('<', "&lt").replace('>', "&gt"));
                 }
                 buffer.push_str(&format!("<span class='c{}'>", index));
                 let last = ext.subs.src(buffer, source, ext.extent.0);
-                let snippet = &source[cmp::max(ext.extent.0, last) .. ext.extent.1];
+                let snippet = &source[cmp::max(ext.extent.0, last) .. ext.extent.1].replace('<', "&lt").replace('>', "&gt");
                 buffer.push_str(snippet);
                 buffer.push_str("</span>");
                 ext.extent.1
@@ -126,7 +126,7 @@ impl ExtentExt for Vec<ExtentOrNested> {
                 let ids2 = ids2.join(" > .c");
 
                 let id_string = format!("expl_{}", ids);
-                let selector = format!("#{}:hover ~ code > .c{}", id_string, ids2);
+                let selector = format!("#{}:hover ~ pre > code > .c{}", id_string, ids2);
                 selectors.push(selector);
 
                 ext.subs.css(stack, selectors);
@@ -142,6 +142,7 @@ pub struct Context {
     pub buffer: String,
     pub source: String,
     pub ids: Vec<ExtentOrNested>,
+    is_list_item: bool,
 }
 
 impl Context {
@@ -153,10 +154,15 @@ impl Context {
     pub fn push_src_ref(&mut self, extent: &Extent) {
         let id = self.ids.push_ext(extent.clone());
         let source = &self.source[extent.0..extent.1];
-        write!(self.buffer, "<span class='pre' id='expl{}'>{}</span>", id, source).unwrap()
+        write!(self.buffer, "<span class='pre' id='expl{}' >{}</span>", id, source).unwrap()
     }
 
-    fn push_newline(&mut self) {
+    pub fn push_list_item(&mut self) {
+        self.push_newline();
+        self.buffer.push_str(" - ");
+    }
+
+    pub fn push_newline(&mut self) {
         self.buffer.push_str("<br/>")
     }
 
@@ -192,31 +198,44 @@ mod test {
 
         match file {
             Result::Ok(file) => {
-                let context = Context {
+                let mut context = Context {
                     buffer: String::new(),
                     source: src.to_owned(),
                     ids: vec![],
+                    is_list_item: false,
                 };
-                let mut expl = html::Crate::new(context);
-                file.visit(&mut expl);
-
+                {
+                    let mut expl = html::Crate{ctx: &mut context};
+                    file.visit(&mut expl);
+                }
+                let curr_dir = std::env::current_dir().expect("Working dir should exist");
                 let mut file = OpenOptions::new()
                     .write(true)
                     .read(true)
                     .create(true)
+                    .truncate(true)
                     .open("target/index.html")
                     .unwrap();
-
-                writeln!(file, "
+                    writeln!(file, r#"<head>
+<base href="file:///{}">
+<link rel="stylesheet" href="explain-rs/res/highlightjs/styles/default.css">
+<script src="explain-rs/res/highlightjs/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+                    "#, curr_dir.display()).unwrap();
+                    writeln!(file, "
                 <style>
+                .pre {{
+                    font-family: monospace;
+                    background-color: lightgrey;
+                }}
                 code {{
                     white-space: pre-wrap;
                 }}
                 {} {{\
                     background-color: yellow;\
-                }}</style>", expl.css()).unwrap();
-                writeln!(file, "{}", expl.buffer).unwrap();
-                writeln!(file, "<code>{}</code>", expl.src()).unwrap();
+                }}</style></head>", context.css()).unwrap();
+                    writeln!(file, "{}", context.buffer).unwrap();
+                    writeln!(file, "<pre><code>{}</code></pre>", &context.src()).unwrap();
 
             }
             Result::Err(err) =>  {

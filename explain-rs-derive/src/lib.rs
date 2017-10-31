@@ -8,30 +8,28 @@ use proc_macro::TokenStream;
 #[proc_macro_derive(DerefForContext)]
 pub fn deref_derive(input: TokenStream) -> TokenStream {
     let s = input.to_string();
-    let ast = syn::parse_macro_input(&s).expect("Unable to parse input");
+    let ast = syn::parse_derive_input(&s).expect("Unable to parse input");
 
     let gen = impl_deref_for_context(&ast);
 
     gen.parse().expect("Unable to generate")
 }
 
-fn impl_deref_for_context(ast: &syn::MacroInput) -> quote::Tokens {
+fn impl_deref_for_context(ast: &syn::DeriveInput) -> quote::Tokens {
     let name = &ast.ident;
-
+    let (impl_generics, ty_generics, where_clause)= ast.generics.split_for_impl();
     quote! {
-        use std::ops::{Deref, DerefMut};
-
-        impl Deref for #name {
+        impl #impl_generics Deref for #name #ty_generics #where_clause {
             type Target = Context;
 
             fn deref(&self) -> &Context {
-                &self.ctx
+                self.ctx
             }
         }
 
-        impl DerefMut for #name {
+        impl #impl_generics DerefMut for #name #ty_generics #where_clause {
             fn deref_mut(&mut self) -> &mut Context {
-                &mut self.ctx
+                self.ctx
             }
         }
     }
