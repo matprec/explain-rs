@@ -5,6 +5,3 @@ version = "0.1.0"
 
 [dependencies.fuzzy-pickles]
 git = "https://github.com/shepmaster/fuzzy-pickles"
-
-[dependencies.explain-rs-derive]
-path = "explain-rs-derive"

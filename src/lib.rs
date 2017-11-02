@@ -1,10 +1,6 @@
-
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(conservative_impl_trait)]
-
-#[macro_use]
-extern crate explain_rs_derive;
 
 extern crate fuzzy_pickles;
 
