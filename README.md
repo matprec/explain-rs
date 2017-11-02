@@ -29,3 +29,7 @@ We want to provide a transpiled (emscripten -> wasm/asm.js) version of it, so th
 
 ### Status
 Pre alpha. No webinterface yet. Don't expect it to work on your code. Also, currently it only generates explanations on its own snippets.
+
+### License
+
+explain-rs is distributed under the terms of both the MIT license and the Apache License (Version 2.0).
