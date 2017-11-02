@@ -14,7 +14,7 @@ pub struct Foo {
 }
 
 pub enum Bar {
-    Baz(Baz)
+    Baz(Baz),
 }
 
 type Baz = (i32, u32);
