@@ -116,7 +116,6 @@ impl ExtentExt for Vec<ExtentOrNested> {
                 let id_string = format!("expl_{}", ids);
                 let selector = format!("#{}:hover ~ pre > code > .c{}", id_string, ids2);
                 selectors.push(selector);
-
                 ext.subs.css(stack, selectors);
 
                 let value = stack.pop().expect("BUG: Index already got removed");
