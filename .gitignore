@@ -2,3 +2,4 @@
 explain-rs.iml
 target
 *.rs.bk
+dist/*.html
