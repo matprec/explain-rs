@@ -95,7 +95,7 @@ impl HTMLOutput {
                     let mut expl = html::Crate { ctx: &mut context };
                     parsed.visit(&mut expl);
                 }
-                let curr_dir = std::env::current_dir().expect("Working dir should exist");
+                let curr_dir = std::env::current_dir().expect("Working dir should exist").join("explain-rs/dist/");
                 let (local, curr_dir) = if self.local {
                     ("file:///", curr_dir.to_str().expect("Should be unicode"))
                 } else {
@@ -105,8 +105,8 @@ impl HTMLOutput {
                     file,
                     r#"<head>
     <base href="{}{}">
-    <link rel="stylesheet" href="explain-rs/dist/res/highlightjs/styles/default.css">
-    <script src="explain-rs/dist/res/highlightjs/highlight.pack.js"></script>
+    <link rel="stylesheet" href="res/highlightjs/styles/default.css">
+    <script src="res/highlightjs/highlight.pack.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
                         "#,
                     local,
