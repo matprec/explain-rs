@@ -4,13 +4,19 @@ use fuzzy_pickles::{Argument, Control, Extent, Function, HasExtent, PatternBox, 
 use Context;
 use std::ops::{Deref, DerefMut};
 
+const FUNCTION: &'static str = "https://doc.rust-lang.org/book/second-edition/ch03-03-how-functions-work.html";
+const PARAMETER: &'static str = "https://doc.rust-lang.org/book/second-edition/ch03-03-how-functions-work.html#function-parameters";
+const DESTRUCTURING: &'static str = "https://doc.rust-lang.org/book/second-edition/ch18-03-pattern-syntax.html#destructuring-to-break-apart-values";
+
 pub struct Crate<'ctx> {
     pub ctx: &'ctx mut Context,
 }
 
 impl<'ctx> Visitor for Crate<'ctx> {
     fn visit_function(&mut self, function: &Function) -> Control {
-        self.ctx.push_text("The function ", &function.extent());
+        self.ctx.push_text("The ", &function.extent());
+        self.ctx.push_link("function", FUNCTION, &function.extent);
+        self.ctx.push_text(" ", &function.extent());
         self.ctx.push_src_ref(&function.header.name.extent);
         self.ctx.push_text(":", &function.extent());
 
@@ -41,7 +47,12 @@ impl<'ctx> Visitor for FnArgument<'ctx> {
     fn visit_pattern_ident(&mut self, ident: &PatternIdent) -> Control {
         self.ctx.push_list_item();
         self.ctx.push_text(
-            "takes an argument called ",
+            "takes a ",
+            &ident.extent(),
+        );
+        self.ctx.push_link("parameter", PARAMETER, &ident.extent());
+        self.ctx.push_text(
+            " called ",
             &ident.extent(),
         );
         self.ctx.push_src_ref(&ident.extent());
@@ -58,10 +69,11 @@ impl<'ctx> Visitor for FnArgument<'ctx> {
         self.ctx.push_list_item();
         let idents = Identifier::strip_from(pattern);
         let text = format!(
-            "destructures its {} argument into its field{} ",
+            " its {} argument into its field{} ",
             pos,
             if idents.len() != 1 { "s" } else { "" }
         );
+        self.ctx.push_link("destructures", DESTRUCTURING, &pattern.extent());
         self.ctx.push_text(&text, &pattern.extent());
         let mut first = true;
         for ident in idents {

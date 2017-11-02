@@ -105,7 +105,6 @@ impl ExtentExt for Vec<ExtentOrNested> {
         })
     }
 
-
     fn css(&self, stack: &mut Vec<usize>, selectors: &mut Vec<String>) {
         self.iter().enumerate().fold(
             stack,
@@ -154,6 +153,11 @@ impl Context {
             id,
             source
         ).unwrap()
+    }
+
+    pub fn push_link(&mut self, text: &str, link: &str, extent: &Extent) {
+        let id = self.ids.push_ext(extent.clone());
+        write!(self.buffer, "<a id='expl{}' href='{}'>{}</a>", id, link, text).unwrap()
     }
 
     pub fn push_list_item(&mut self) {
