@@ -3,5 +3,12 @@ authors = ["MSleepyPanda <m.sleepypanda@gmail.com>"]
 name = "explain-rs"
 version = "0.1.0"
 
+[dependencies]
+stdweb = "0.2.0"
+sha1 = "0.3"
+serde = "1.0.24"
+serde_derive = "1.0.24"
+serde_json = "1.0.8"
+
 [dependencies.fuzzy-pickles]
 git = "https://github.com/shepmaster/fuzzy-pickles"

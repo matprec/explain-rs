@@ -1,10 +1,6 @@
 //use explain::Explanation;
 
-#[allow(dead_code)]
-#[allow(unused_variables)]
 mod nightly;
-#[allow(dead_code)]
-#[allow(unused_variables)]
 mod stable;
 
 pub struct Foo {
