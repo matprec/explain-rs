@@ -4,11 +4,16 @@
         <meta charset="utf-8">
         <title>Explain-rs</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
-        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
         <script src="js/app.js"></script>
         <script>
+            var fetchSrc = null;
+            function load_src(data) {
+                let textarea = $('textarea');
+                textarea.val(data);
+            }
 
             $(document).ready(function() {
                 let explainer = null;
@@ -20,6 +25,18 @@
                 }
 
                 Rust.explain_rs.then(function(explain) {
+                    fetchSrc = explain.fetch_src;
+                    let examples = JSON.parse(explain.list_examples());
+                    for(example in examples) {
+                        let example_text = examples[example];
+                        let item = $('<a class="dropdown-item" href="#">' + example_text + '</a>');
+                        item.on("click", function(event) {
+                            let src = explain.load_example(example_text);
+                            textarea.val(src);
+                        });
+                        item.insertAfter($('#example_menu'));
+                    }
+
                     explainer = explain;
                     textarea.on({
                         keydown: function(e) {
@@ -87,6 +104,9 @@
             label {
                 margin-bottom: 0;
             }
+            input {
+                width: 100% !important;
+            }
         </style>
     </head>
     <body>
@@ -105,14 +125,19 @@
                     </label>
                 </div>
                 <div class="input-group">
-                    <div class="input-group-prepend">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" disabled data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Source</button>
-                        <div class="dropdown-menu">
-                            <a class="dropdown-item" href="#">Text</a>
-                            <a class="dropdown-item" href="#">Github</a>
-                        </div>
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Load from</button>
+                    <div class="dropdown-menu">
+                        <h6 class="dropdown-header" id="example_menu">Examples</h6>
+                        <div class="dropdown-divider"></div>
+                        <h6 class="dropdown-header">Internet</h6>
+                        <form class="pl-4 pr-4">
+                            <div class="form-group">
+                                <label for="exampleDropdownFormEmail2">Url</label>
+                                <input type="text" class="form-control" id="fetchURL">
+                            </div>
+                            <button type="submit" onClick="fetchSrc($('#fetchURL').val());" class="btn btn-primary">Load</button>
+                        </form>
                     </div>
-                    <input type="text" class="form-control" disabled aria-label="Text input with dropdown button">
                 </div>
             </div>
             <div class="row-item">

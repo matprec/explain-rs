@@ -9,6 +9,12 @@ sha1 = "0.3"
 serde = "1.0.24"
 serde_derive = "1.0.24"
 serde_json = "1.0.8"
+lazy_static = "1.0.0"
+itertools = "0.7.5"
+
+[dependencies.url]
+version = "1.6.0"
+git = "https://github.com/servo/rust-url"
 
 [dependencies.fuzzy-pickles]
 git = "https://github.com/shepmaster/fuzzy-pickles"
