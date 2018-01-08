@@ -22,6 +22,7 @@ mod snippets;
 
 use fuzzy_pickles::{Control, FunctionHeader, HasExtent, Item, Visit, Visitor};
 use std::convert::TryFrom;
+use std::mem;
 
 pub enum Mode {
     Syntax,
@@ -32,7 +33,6 @@ impl TryFrom<String> for Mode {
     type Error = ();
 
     fn try_from(mode: String) -> Result<Mode, ()> {
-        // TODO: Remove me once #46984 lands
         let mode: &str = &mode;
         match mode {
             "syntax" => Ok(Mode::Syntax),
@@ -104,13 +104,21 @@ impl<'ast> Visitor for SyntaxExpl<'ast> {
         self.push_src(&ident);
         self.push_str(" takes ");
 
-        let args = function::args_expl(header, &self.common);
+        let mut args = function::args_expl(header, &self.common);
+        args.iter_mut().for_each(|arg| {
+            let new_arg = format!("is {}", arg);
+            mem::replace(arg, new_arg);
+        });
         
         match args.len() {
             0 => self.push_str("no arguments."),
             _ => {
-                let s = if args.len() == 1 {format!(", {}.",  args[0])} else {"s.".to_string()};
-                self.push_str(&format!("{} argument{}", args.len(),  s))
+                let s = if args.len() == 1 {format!(", which {}.",  args[0])} else {"s:".to_string()};
+                self.push_str(&format!("{} argument{}", args.len(),  s));
+                if args.len() != 1 {
+                    args.last_mut().map(|expl| expl.push('.'));
+                    self.push_list(&args);
+                }
             },
         }
         Control::Continue
@@ -147,6 +155,12 @@ pub trait Convenience {
         buffer.push_str(text);
     }
 
+    fn get_src<T>(&mut self, t: &T) -> &str where T: HasExtent {
+        let Common { src, ..} = self.borrow();
+        let (lower, upper) = t.extent();
+        &src[lower..upper]
+    }
+
     fn push_src<T>(&mut self, t: &T) where T: HasExtent {
         let Common { cursor, src, buffer } = self.borrow();
         buffer.push_str("<code>");
@@ -159,6 +173,17 @@ pub trait Convenience {
             buffer.push_str("</strong>");
         }
         buffer.push_str("</code>");
+    }
+
+    fn push_list(&mut self, texts: &[String]) {
+        let Common { buffer, ..} = self.borrow();
+        buffer.push_str("<ol>");
+        for text in texts {
+            buffer.push_str("<li>");
+            buffer.push_str(&text);
+            buffer.push_str("</li>");
+        }
+        buffer.push_str("</ol>");
     }
 
 }
