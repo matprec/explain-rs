@@ -1,6 +1,8 @@
 # explain-rs
 A library which finds language features in rust code and provides resources on them.
 
+[See it in action](https://msleepypanda.github.io/explain-rs/)!
+
 ### Give your co-workers a quickstart into your rust code's syntax.
 Introducing Rust in existing teams can be difficult. Some members might work primarily in other languages and therefore can't devote much time to learn rust in all its facets.
 Code in an unfamiliar syntax looks like gibberish at first, whilst the underlying concepts might in fact be similar with a known language.
