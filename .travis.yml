@@ -19,9 +19,6 @@ script:
 before_deploy:
   - mkdir -p dist/js
   - cp src/static/index.html dist/
-  - ls target
-  - ls target/wasm32-unknown-unknown/
-  - ls target/wasm32-unknown-unknown/release
   - cp target/wasm32-unknown-unknown/release/explain-rs.js dist/js/app.js
   - cp target/wasm32-unknown-unknown/release/explain-rs.wasm dist/
 deploy:
