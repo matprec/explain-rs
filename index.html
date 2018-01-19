@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Explain-rs</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+        <script src="js/app.js"></script>
+        <script>
+            var fetchSrc = null;
+            function load_src(data) {
+                let textarea = $('textarea');
+                textarea.val(data);
+            }
+
+            $(document).ready(function() {
+                let explainer = null;
+                let textarea = $('textarea');
+                // Load src
+                let src = window.sessionStorage.getItem('src');
+                if (src != undefined) {
+                    textarea.val(src);
+                }
+
+                Rust.explain_rs.then(function(explain) {
+                    fetchSrc = explain.fetch_src;
+                    let examples = JSON.parse(explain.list_examples());
+                    for(example in examples) {
+                        let example_text = examples[example];
+                        let item = $('<a class="dropdown-item" href="#">' + example_text + '</a>');
+                        item.on("click", function(event) {
+                            let src = explain.load_example(example_text);
+                            textarea.val(src);
+                        });
+                        item.insertAfter($('#example_menu'));
+                    }
+
+                    explainer = explain;
+                    textarea.on({
+                        keydown: function(e) {
+                            /* Adapted from https://stackoverflow.com/questions/6637341/use-tab-to-indent-in-textarea */
+                            let keyCode = e.keyCode || e.which;
+
+                            if (keyCode == 9) {
+                                e.preventDefault();
+                                let start = this.selectionStart;
+                                let end = this.selectionEnd;
+
+                                // set textarea value to: text before caret + tab + text after caret
+                                $(this).val($(this).val().substring(0, start)
+                                            + "    "
+                                            + $(this).val().substring(end));
+
+                                // put caret at right position again
+                                this.selectionStart =
+                                this.selectionEnd = start + 4;
+                            }
+                        },
+                        keyup: update,
+                        change: update,
+                        click: update,
+                        focus: update,
+                    });
+                    let cursor = null;
+                    function update() {
+                        cursor = textarea.prop('selectionEnd');
+                        let mode = $("label.active > input[name=mode]").attr('id');
+                        
+                        let classification = explainer.explain($(this).val(), mode,  cursor);
+                        let json = JSON.parse(classification);
+                        $('#output').html(json.Ok);
+
+                        // Store src
+                        let storage = window.sessionStorage;
+                        storage.setItem('src', $(this).val());
+                    }
+                });
+            });
+        </script>
+        <style>
+            html, body, textarea {
+                height: 100%;
+            }
+            div.container {
+                display: flex;
+                flex-direction: column;
+                min-height: 100%;
+            }
+            div.row-item {
+                flex: 1;
+            }
+            /* https://stackoverflow.com/questions/2032652/forcing-html-textarea-to-use-a-monospace-font-using-css */
+            textarea {
+                font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+            }
+            #output {
+                white-space: pre-wrap;
+            }
+            code > strong {
+                background-color: yellow;
+            }
+            label {
+                margin-bottom: 0;
+            }
+            input {
+                width: 100% !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Explaining Rust 🎉</h1>
+            <div class="btn-toolbar mb-3" role="toolbar">
+                <div class="btn-group mr-2" role="group" data-toggle="buttons">
+                    <label class="btn btn-secondary active">
+                      <input type="radio" name="mode" id="syntax" autocomplete="off">Syntax
+                    </label>
+                    <label class="btn btn-secondary disabled">
+                      <input type="radio" name="mode" id="cf" autocomplete="off">Controlflow
+                    </label>
+                    <label class="btn btn-secondary disabled">
+                      <input type="radio" name="mode" id="lt" autocomplete="off">Lifetimes
+                    </label>
+                </div>
+                <div class="input-group">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Load from</button>
+                    <div class="dropdown-menu">
+                        <h6 class="dropdown-header" id="example_menu">Examples</h6>
+                        <div class="dropdown-divider"></div>
+                        <h6 class="dropdown-header">Internet</h6>
+                        <form class="pl-4 pr-4">
+                            <div class="form-group">
+                                <label for="exampleDropdownFormEmail2">Url</label>
+                                <input type="text" class="form-control" id="fetchURL">
+                            </div>
+                            <button type="submit" onClick="fetchSrc($('#fetchURL').val());" class="btn btn-primary">Load</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="row-item">
+                <textarea class="form-control" placeholder="Insert Rust source code here"></textarea>
+            </div>
+            <div class="row-item">
+                <div class="alert alert-primary" role="alert">
+                    Remember that the explanation is context sensitive! Place your cursor accordingly.
+                </div>
+                <span id="output"></span>
+            </div>
+        </div>
+    </body>
+</html>
